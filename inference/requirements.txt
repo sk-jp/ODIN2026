@@ -1,0 +1,12 @@
+numpy==2.2.6
+scipy==1.16.3
+nibabel==5.3.2
+SimpleITK==2.4.1
+dynamic-network-architectures==0.4.4
+acvl-utils
+batchgenerators
+transformers==5.12.1
+peft==0.18.0
+bitsandbytes==0.49.1
+accelerate==1.6.0
+flash-linear-attention==0.5.2
