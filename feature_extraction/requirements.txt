@@ -1,0 +1,11 @@
+torch>=2.0
+nnunetv2>=2.4
+dynamic-network-architectures
+mamba-ssm
+numpy
+nibabel
+SimpleITK
+acvl-utils
+batchgenerators
+pytest
+

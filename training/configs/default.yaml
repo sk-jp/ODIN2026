@@ -1,0 +1,109 @@
+General:
+  seed: 42
+  accelerator: gpu
+  devices: 1
+  num_nodes: 1
+  precision: bf16-mixed
+  epochs: 20
+  debug: false
+  validation_interval: 1.0
+  num_sanity_val_steps: 0
+  deterministic: false
+  output_root: results
+
+Data:
+  train_manifest: datalist/train_manifest.jsonl
+  valid_manifest: datalist/valid_manifest.jsonl
+  feature_channels: 320
+  pool_grid: [4, 4, 4]
+  image_token_mode: global_region
+  include_global_tokens: true
+  max_region_tokens: 48
+  max_report_tokens: 768
+  template_cap: 3
+  near_template_cap: 3
+  clause_weighting: true
+  coverage_token_weight: 0.5
+  finding_token_weight: 1.5
+  train_loader:
+    batch_size: 1
+    num_workers: 4
+    pin_memory: true
+    persistent_workers: true
+    drop_last: false
+  valid_loader:
+    batch_size: 1
+    num_workers: 2
+    pin_memory: true
+    persistent_workers: true
+    drop_last: false
+
+Model:
+  pretrained_path: /path/to/Qwen3.5-4B
+  gradient_checkpointing: true
+  projector_hidden_dim: 2560
+  projector_dropout: 0.1
+  max_region_label: 64
+  quantization: {quant_type: nf4, double_quant: true}
+  lora:
+    rank: 16
+    alpha: 32
+    dropout: 0.05
+    bias: none
+    target_modules: [q_proj, k_proj, v_proj, o_proj, in_proj_qkv, in_proj_z, in_proj_b, in_proj_a, out_proj, gate_proj, up_proj, down_proj]
+    exclude_modules: '.*\.mtp\..*'
+
+Optimizer:
+  # learning_rate remains as a backward-compatible fallback.
+  learning_rate: 1.0e-5
+  projector_learning_rate: 1.0e-4
+  lora_learning_rate: 1.0e-5
+  structured_learning_rate: 1.0e-4
+  projector_only_epochs: 2
+  weight_decay: 0.01
+  accumulate_grad_batches: 4
+  gradient_clip_val: 1.0
+StructuredFindings:
+  enabled: true
+  loss_weight: 0.30
+  tooth_weight: 1.0
+  case_weight: 1.0
+  positive_weight: 3.0
+  dropout: 0.1
+Grounding:
+  enabled: true
+  loss_weight: 0.10
+  margin: 0.10
+Scheduler:
+  name: CosineAnnealingWithWarmupLR
+  start_learning_rate: 1e-7
+  end_learning_rate: 1e-7
+  warmup_ratio: 0.1
+Evaluation:
+  max_new_tokens: 384
+  repetition_penalty: 1.10
+  no_repeat_ngram_size: 6
+  image_shuffle_enabled: true
+  checkpoint_selection:
+    positive_weights:
+      tooth_f1_micro: 0.35
+      tooth_f1_macro: 0.15
+      case_specific_f1_micro: 0.25
+      side_accuracy: 0.10
+      negation_consistency: 0.10
+      image_shuffle_grounding_gap: 0.05
+    empty_generation_penalty: 0.50
+    penalty_weights:
+      unsupported_finding_rate: 0.50
+      truncated_generation_rate: 0.20
+      repetition_case_rate: 0.20
+      invalid_fdi_case_rate: 0.20
+    hard_gates:
+      max_unsupported_finding_rate: 0.60
+      max_truncated_generation_rate: 0.05
+      max_invalid_fdi_case_rate: 0.0
+      min_tooth_precision_micro: 0.15
+Logger:
+  metric_schema_version: 2
+  use_wandb: false
+  project: ODIN2026-CBCT
